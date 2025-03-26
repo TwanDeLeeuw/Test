@@ -1,7 +1,9 @@
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.Arrays;
 
 import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
@@ -77,61 +79,66 @@ public class HelloJOGL implements GLEventListener {
 
 	@Override
 	public void init(GLAutoDrawable drawable) {
-		GL4 gl = drawable.getGL().getGL4();
-		
-		gl.glEnable(GL4.GL_DEPTH_TEST);
-		
-		gl.glViewport(0, 0, 800, 600);
-		
-		ShaderCode vertexShader = ShaderCode.create(gl, GL4.GL_VERTEX_SHADER, this.getClass(), "shaders", "shaders/bin", "vertex", true);
-		vertexShader.compile(gl, System.err);
-		vertexShader.defaultShaderCustomization(gl, true, true);
-		
-		ShaderCode fragmentShader = ShaderCode.create(gl, GL4.GL_FRAGMENT_SHADER, this.getClass(), "shaders", "shaders/bin", "fragment", true);
-		fragmentShader.compile(gl, System.err);
-		fragmentShader.defaultShaderCustomization(gl, true, true);
-		
-		shaderProgram = new ShaderProgram();
-		shaderProgram.init(gl);
-		shaderProgram.add(vertexShader);
-		shaderProgram.add(fragmentShader);
-		shaderProgram.link(gl, System.err);
-		
-		projection = new Matrix4f();
-		//view = new Matrix4f();
-		model = new Matrix4f();
-		
-		projection.setToPerspective((float)Math.toRadians(45), 800.0f / 600.0f, 0.1f, 100.0f);
-		//model.setToRotationAxis((float)Math.toRadians(45), 1.0f, 1.0f, 0.0f);
-		
-		gl.glDeleteShader(vertexShader.id());
-		gl.glDeleteShader(fragmentShader.id());
-		
-		VAO = IntBuffer.allocate(meshCount);
-		
-		
-		VBO = IntBuffer.allocate(meshCount);
-		tex = IntBuffer.allocate(1);
-		
-		gl.glGenBuffers(meshCount, VBO);
-		
-		gl.glGenVertexArrays(meshCount, VAO);
-		
-		for(int i = 0; i < meshCount; i++) {
-			gl.glBindBuffer(GL4.GL_ARRAY_BUFFER, VBO.get(i));
-			gl.glBindVertexArray(VAO.get(i));
-			gl.glVertexAttribPointer(0, 1, GL4.GL_FLOAT, false, 3 * GLBuffers.SIZEOF_FLOAT, 0);
-			gl.glVertexAttribPointer(1, 2, GL4.GL_FLOAT, false, 3 * GLBuffers.SIZEOF_FLOAT, 1 * GLBuffers.SIZEOF_FLOAT);
-			gl.glEnableVertexAttribArray(0);
-			gl.glEnableVertexAttribArray(1);
-		}
-		
-		for(int i = 0; i < meshCount; i++) {
-			gl.glBindBuffer(GL4.GL_ARRAY_BUFFER, VBO.get(i));
-			gl.glBindVertexArray(VAO.get(i));
-			FloatBuffer vertices = GLBuffers.newDirectFloatBuffer(cubes[i].getMeshData());
-			gl.glBufferData(GL4.GL_ARRAY_BUFFER, vertices.limit() * GLBuffers.SIZEOF_FLOAT, vertices, GL4.GL_STATIC_DRAW);
-		}
+	    GL4 gl = drawable.getGL().getGL4();
+
+	    gl.glEnable(GL4.GL_DEPTH_TEST);
+	    gl.glViewport(0, 0, 800, 600);
+	    
+	    ShaderCode vertexShader = ShaderCode.create(gl, GL4.GL_VERTEX_SHADER, this.getClass(), "shaders", "shaders/bin", "vertex", true);
+	    vertexShader.compile(gl, System.err);
+	    vertexShader.defaultShaderCustomization(gl, true, true);
+	    
+	    ShaderCode fragmentShader = ShaderCode.create(gl, GL4.GL_FRAGMENT_SHADER, this.getClass(), "shaders", "shaders/bin", "fragment", true);
+	    fragmentShader.compile(gl, System.err);
+	    fragmentShader.defaultShaderCustomization(gl, true, true);
+	    
+	    shaderProgram = new ShaderProgram();
+	    shaderProgram.init(gl);
+	    shaderProgram.add(vertexShader);
+	    shaderProgram.add(fragmentShader);
+	    shaderProgram.link(gl, System.err);
+	    
+	    projection = new Matrix4f();
+	    model = new Matrix4f();
+	    
+	    projection.setToPerspective((float)Math.toRadians(45), 800.0f / 600.0f, 0.1f, 100.0f);
+	    
+	    gl.glDeleteShader(vertexShader.id());
+	    gl.glDeleteShader(fragmentShader.id());
+	    
+	    VAO = IntBuffer.allocate(1);
+	    VBO = IntBuffer.allocate(1);
+	    tex = IntBuffer.allocate(1);
+	    
+	    gl.glGenBuffers(1, VBO);
+	    gl.glGenVertexArrays(1, VAO);
+	    
+	    // Bind the VAO first, then bind the corresponding buffer
+	    gl.glBindVertexArray(VAO.get(0)); // Bind VAO
+	    gl.glBindBuffer(GL4.GL_ARRAY_BUFFER, VBO.get(0)); // Bind VBO
+	    
+	    // Define vertex attribute pointers (assuming cubes[i].getMeshData() returns the correct data)
+	    gl.glVertexAttribPointer(0, 3, GL4.GL_FLOAT, false, 5 * GLBuffers.SIZEOF_FLOAT, 0); // Position
+	    gl.glVertexAttribPointer(1, 2, GL4.GL_FLOAT, false, 5 * GLBuffers.SIZEOF_FLOAT, 3 * GLBuffers.SIZEOF_FLOAT); // Texture Coordinates
+	    gl.glEnableVertexAttribArray(0);
+	    gl.glEnableVertexAttribArray(1);
+	    
+	    // Map the buffer for writing
+	    ByteBuffer verticesByteBuffer = gl.glMapBuffer(GL4.GL_ARRAY_BUFFER, GL4.GL_WRITE_ONLY);
+	    if (verticesByteBuffer == null) {
+	        throw new RuntimeException("Failed to map the buffer");
+	    }
+	    
+	    // Cast to FloatBuffer and write data
+	    FloatBuffer verticesBuffer = verticesByteBuffer.asFloatBuffer();
+	    for (int i = 0; i < meshCount; i++) {
+	        // Fill the buffer with mesh data for each cube
+	        verticesBuffer.put(cubes[i].getMeshData());
+	    }
+	    verticesBuffer.flip(); // Flip the buffer after writing
+
+	    // Unmap the buffer when done
+	    gl.glUnmapBuffer(GL4.GL_ARRAY_BUFFER);
 		
 		try {
 			texture = TextureIO.newTextureData(gl.getGLProfile(), new File("res/container2.png"), GL4.GL_TEXTURE_2D, GL4.GL_RGBA, false, "png");
@@ -186,9 +193,8 @@ public class HelloJOGL implements GLEventListener {
 		gl.glUniformMatrix4fv(projectionLocation, 1, false, projection.get(new float[16]), 0);
 		gl.glUniformMatrix4fv(viewLocation, 1, false, view.get(new float[16]), 0);
 		
-		for(int i = 0; i < meshCount; i++) {
-			draw(gl, VBO.get(i), VAO.get(i));
-		}
+		draw(gl, VBO.get(0), VAO.get(0));
+		
 
 		//gl.glDrawElements(GL4.GL_TRIANGLES, VAO.limit(), GL4.GL_FLOAT, 0);
 
