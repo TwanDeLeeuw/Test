@@ -117,6 +117,8 @@ public class HelloJOGL implements GLEventListener {
 	    gl.glBindVertexArray(VAO.get(0)); // Bind VAO
 	    gl.glBindBuffer(GL4.GL_ARRAY_BUFFER, VBO.get(0)); // Bind VBO
 	    
+	    gl.glBufferData(GL4.GL_ARRAY_BUFFER, 5000, null, GL4.GL_DYNAMIC_DRAW);
+	    
 	    // Define vertex attribute pointers (assuming cubes[i].getMeshData() returns the correct data)
 	    gl.glVertexAttribPointer(0, 3, GL4.GL_FLOAT, false, 5 * GLBuffers.SIZEOF_FLOAT, 0); // Position
 	    gl.glVertexAttribPointer(1, 2, GL4.GL_FLOAT, false, 5 * GLBuffers.SIZEOF_FLOAT, 3 * GLBuffers.SIZEOF_FLOAT); // Texture Coordinates
@@ -135,7 +137,7 @@ public class HelloJOGL implements GLEventListener {
 	        // Fill the buffer with mesh data for each cube
 	        verticesBuffer.put(cubes[i].getMeshData());
 	    }
-	    verticesBuffer.flip(); // Flip the buffer after writing
+	    //verticesBuffer.flip(); // Flip the buffer after writing
 
 	    // Unmap the buffer when done
 	    gl.glUnmapBuffer(GL4.GL_ARRAY_BUFFER);
