@@ -117,7 +117,10 @@ public class HelloJOGL implements GLEventListener {
 	    gl.glBindVertexArray(VAO.get(0)); // Bind VAO
 	    gl.glBindBuffer(GL4.GL_ARRAY_BUFFER, VBO.get(0)); // Bind VBO
 	    
-	    gl.glBufferData(GL4.GL_ARRAY_BUFFER, 5000, null, GL4.GL_DYNAMIC_DRAW);
+	    
+	    int bufferSize = 9 * 36 * 3 * GLBuffers.SIZEOF_FLOAT;
+	    gl.glBufferData(GL4.GL_ARRAY_BUFFER, bufferSize, null, GL4.GL_DYNAMIC_DRAW);
+	    //System.out.println(bufferSize);
 	    
 	    // Define vertex attribute pointers (assuming cubes[i].getMeshData() returns the correct data)
 	    gl.glVertexAttribPointer(0, 3, GL4.GL_FLOAT, false, 5 * GLBuffers.SIZEOF_FLOAT, 0); // Position
@@ -126,22 +129,28 @@ public class HelloJOGL implements GLEventListener {
 	    gl.glEnableVertexAttribArray(1);
 	    
 	    // Map the buffer for writing
-	    ByteBuffer verticesByteBuffer = gl.glMapBuffer(GL4.GL_ARRAY_BUFFER, GL4.GL_WRITE_ONLY);
+	    ByteBuffer verticesByteBuffer = gl.glMapBufferRange(
+	    	    GL4.GL_ARRAY_BUFFER, 
+	    	    0, 
+	    	    bufferSize, 
+	    	    GL4.GL_MAP_WRITE_BIT | GL4.GL_MAP_INVALIDATE_BUFFER_BIT
+	    	);
 	    if (verticesByteBuffer == null) {
 	        throw new RuntimeException("Failed to map the buffer");
 	    }
 	    
 	    // Cast to FloatBuffer and write data
 	    FloatBuffer verticesBuffer = verticesByteBuffer.asFloatBuffer();
-	    for (int i = 0; i < meshCount; i++) {
+	   // for (int i = 0; i < meshCount; i++) {
 	        // Fill the buffer with mesh data for each cube
-	        verticesBuffer.put(cubes[i].getMeshData());
-	    }
-	    //verticesBuffer.flip(); // Flip the buffer after writing
+	        verticesBuffer.put(cubes[0].getMeshData());
+	    //}
+	    verticesBuffer.flip(); // Flip the buffer after writing
 
 	    // Unmap the buffer when done
 	    gl.glUnmapBuffer(GL4.GL_ARRAY_BUFFER);
 		
+	    //gl.glBufferSubData(GL4.GL_ARRAY_BUFFER, 0, bufferSize, FloatBuffer.wrap(cubes[0].getMeshData()));
 		try {
 			texture = TextureIO.newTextureData(gl.getGLProfile(), new File("res/container2.png"), GL4.GL_TEXTURE_2D, GL4.GL_RGBA, false, "png");
 		} catch(IOException e) {
@@ -157,6 +166,8 @@ public class HelloJOGL implements GLEventListener {
 		gl.glTexParameteri(GL4.GL_TEXTURE_2D, GL4.GL_TEXTURE_MAG_FILTER, GL4.GL_LINEAR);
 		gl.glTexImage2D(GL4.GL_TEXTURE_2D, 0, GL4.GL_RGBA, texture.getWidth(), texture.getHeight(), 0, GL4.GL_RGBA, GL4.GL_UNSIGNED_BYTE, texture.getBuffer());
 		gl.glGenerateMipmap(GL4.GL_TEXTURE_2D);
+		
+		
 	}
 	
 	@Override
@@ -197,16 +208,21 @@ public class HelloJOGL implements GLEventListener {
 		
 		draw(gl, VBO.get(0), VAO.get(0));
 		
-
+		int error = gl.glGetError();
+		if (error != GL4.GL_NO_ERROR) {
+		    System.err.println("OpenGL Error: " + error);
+		}
 		//gl.glDrawElements(GL4.GL_TRIANGLES, VAO.limit(), GL4.GL_FLOAT, 0);
 
 	}
 	
 	private void draw(GL4 gl, int vb, int ib) {
-		//gl.glBindBuffer(GL4.GL_ARRAY_BUFFER, vb);
+	    int[] boundVBO = new int[1];
+	    
+		gl.glBindBuffer(GL4.GL_ARRAY_BUFFER, vb);
 		gl.glBindVertexArray(ib);
 		gl.glDrawArrays(GL4.GL_TRIANGLES, 0, 36);
-
+		gl.glBindVertexArray(0);
 	}
 
 	@Override
