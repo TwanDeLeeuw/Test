@@ -63,5 +63,9 @@ public class Player implements KeyListener {
 			return;
 		keys[e.getKeyCode()] = false;
 	}
+	
+	public Vec3f getPosition() {
+		return position;
+	}
 
 }

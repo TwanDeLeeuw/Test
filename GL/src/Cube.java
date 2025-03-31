@@ -1,7 +1,7 @@
 
 public class Cube {
 	
-	private int x, y, z;
+	private float x, y, z;
 	
 	public static final int VERTEX_COUNT = 36;
 	public static final int VERTEX_SIZE = 3;
@@ -13,52 +13,67 @@ public class Cube {
 	}
 	
 	public float[] getMeshData() {
-		
-		float[] meshData = new float[] {
-				Float.intBitsToFloat((x + 0) << 8 | (y + 0) << 4 | (z + 0)), 0.0f, 0.0f,
-				Float.intBitsToFloat((x + 1) << 8 | (y + 0) << 4 | (z + 0)), 1.0f, 0.0f,
-				Float.intBitsToFloat((x + 1) << 8 | (y + 1) << 4 | (z + 0)), 1.0f, 1.0f,
-				Float.intBitsToFloat((x + 1) << 8 | (y + 1) << 4 | (z + 0)), 1.0f, 1.0f,
-				Float.intBitsToFloat((x + 0) << 8 | (y + 1) << 4 | (z + 0)), 0.0f, 1.0f,
-				Float.intBitsToFloat((x + 0) << 8 | (y + 0) << 4 | (z + 0)), 0.0f, 0.0f,
-				
-				Float.intBitsToFloat((x + 0) << 8 | (y + 0) << 4 | (z + 1)), 0.0f, 0.0f,
-				Float.intBitsToFloat((x + 1) << 8 | (y + 0) << 4 | (z + 1)), 1.0f, 0.0f,
-				Float.intBitsToFloat((x + 1) << 8 | (y + 1) << 4 | (z + 1)), 1.0f, 1.0f,
-				Float.intBitsToFloat((x + 1) << 8 | (y + 1) << 4 | (z + 1)), 1.0f, 1.0f,
-				Float.intBitsToFloat((x + 0) << 8 | (y + 1) << 4 | (z + 1)), 0.0f, 1.0f,
-				Float.intBitsToFloat((x + 0) << 8 | (y + 0) << 4 | (z + 1)), 0.0f, 0.0f,
-				
-				Float.intBitsToFloat((x + 0) << 8 | (y + 1) << 4 | (z + 1)), 1.0f, 0.0f,
-				Float.intBitsToFloat((x + 0) << 8 | (y + 1) << 4 | (z + 0)), 1.0f, 1.0f,
-				Float.intBitsToFloat((x + 0) << 8 | (y + 0) << 4 | (z + 0)), 0.0f, 1.0f,
-				Float.intBitsToFloat((x + 0) << 8 | (y + 0) << 4 | (z + 0)), 0.0f, 1.0f,
-				Float.intBitsToFloat((x + 0) << 8 | (y + 0) << 4 | (z + 1)), 0.0f, 0.0f,
-				Float.intBitsToFloat((x + 0) << 8 | (y + 1) << 4 | (z + 1)), 1.0f, 0.0f,
-				
-				Float.intBitsToFloat((x + 1) << 8 | (y + 1) << 4 | (z + 1)), 1.0f, 0.0f,
-				Float.intBitsToFloat((x + 1) << 8 | (y + 1) << 4 | (z + 0)), 1.0f, 1.0f,
-				Float.intBitsToFloat((x + 1) << 8 | (y + 0) << 4 | (z + 0)), 0.0f, 1.0f,
-				Float.intBitsToFloat((x + 1) << 8 | (y + 0) << 4 | (z + 0)), 0.0f, 1.0f,
-				Float.intBitsToFloat((x + 1) << 8 | (y + 0) << 4 | (z + 1)), 0.0f, 0.0f,
-				Float.intBitsToFloat((x + 1) << 8 | (y + 1) << 4 | (z + 1)), 1.0f, 0.0f,
-				
-				Float.intBitsToFloat((x + 0) << 8 | (y + 0) << 4 | (z + 0)), 0.0f, 1.0f,
-				Float.intBitsToFloat((x + 1) << 8 | (y + 0) << 4 | (z + 0)), 1.0f, 1.0f,
-				Float.intBitsToFloat((x + 1) << 8 | (y + 0) << 4 | (z + 1)), 1.0f, 0.0f,
-				Float.intBitsToFloat((x + 1) << 8 | (y + 0) << 4 | (z + 1)), 1.0f, 0.0f,
-				Float.intBitsToFloat((x + 0) << 8 | (y + 0) << 4 | (z + 1)), 0.0f, 0.0f,
-				Float.intBitsToFloat((x + 0) << 8 | (y + 0) << 4 | (z + 0)), 0.0f, 1.0f,
-				
-				Float.intBitsToFloat((x + 0) << 8 | (y + 1) << 4 | (z + 0)), 0.0f, 1.0f,
-				Float.intBitsToFloat((x + 1) << 8 | (y + 1) << 4 | (z + 0)), 1.0f, 1.0f,
-				Float.intBitsToFloat((x + 1) << 8 | (y + 1) << 4 | (z + 1)), 1.0f, 0.0f,
-				Float.intBitsToFloat((x + 1) << 8 | (y + 1) << 4 | (z + 1)), 1.0f, 0.0f,
-				Float.intBitsToFloat((x + 0) << 8 | (y + 1) << 4 | (z + 1)), 0.0f, 0.0f,
-				Float.intBitsToFloat((x + 0) << 8 | (y + 1) << 4 | (z + 0)), 0.0f, 1.0f
-		};
-		
-		return meshData;
-	}
+	    float[] meshData = new float[] {
+	        // Front face
+	        x, y, z, 0.0f, 0.0f,
+	        x + 1, y, z, 1.0f, 0.0f,
+	        x + 1, y + 1, z, 1.0f, 1.0f,
+	        x + 1, y + 1, z, 1.0f, 1.0f,
+	        x, y + 1, z, 0.0f, 1.0f,
+	        x, y, z, 0.0f, 0.0f,
 
+	        // Back face
+	        x, y, z + 1, 0.0f, 0.0f,
+	        x + 1, y, z + 1, 1.0f, 0.0f,
+	        x + 1, y + 1, z + 1, 1.0f, 1.0f,
+	        x + 1, y + 1, z + 1, 1.0f, 1.0f,
+	        x, y + 1, z + 1, 0.0f, 1.0f,
+	        x, y, z + 1, 0.0f, 0.0f,
+
+	        // Left face
+	        x, y + 1, z + 1, 1.0f, 0.0f,
+	        x, y + 1, z, 1.0f, 1.0f,
+	        x, y, z, 0.0f, 1.0f,
+	        x, y, z, 0.0f, 1.0f,
+	        x, y, z + 1, 0.0f, 0.0f,
+	        x, y + 1, z + 1, 1.0f, 0.0f,
+
+	        // Right face
+	        x + 1, y + 1, z + 1, 1.0f, 0.0f,
+	        x + 1, y + 1, z, 1.0f, 1.0f,
+	        x + 1, y, z, 0.0f, 1.0f,
+	        x + 1, y, z, 0.0f, 1.0f,
+	        x + 1, y, z + 1, 0.0f, 0.0f,
+	        x + 1, y + 1, z + 1, 1.0f, 0.0f,
+
+	        // Bottom face
+	        x, y, z, 0.0f, 1.0f,
+	        x + 1, y, z, 1.0f, 1.0f,
+	        x + 1, y, z + 1, 1.0f, 0.0f,
+	        x + 1, y, z + 1, 1.0f, 0.0f,
+	        x, y, z + 1, 0.0f, 0.0f,
+	        x, y, z, 0.0f, 1.0f,
+
+	        // Top face
+	        x, y + 1, z, 0.0f, 1.0f,
+	        x + 1, y + 1, z, 1.0f, 1.0f,
+	        x + 1, y + 1, z + 1, 1.0f, 0.0f,
+	        x + 1, y + 1, z + 1, 1.0f, 0.0f,
+	        x, y + 1, z + 1, 0.0f, 0.0f,
+	        x, y + 1, z, 0.0f, 1.0f
+	    };
+	    return meshData;
+	}
+	
+	float getX() {
+		return x;
+	}
+	
+	float getY() {
+		return y;
+	}
+	
+	float getZ() {
+		return z;
+	}
 }

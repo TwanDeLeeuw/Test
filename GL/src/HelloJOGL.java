@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import com.jogamp.newt.Display;
@@ -34,9 +35,11 @@ public class HelloJOGL implements GLEventListener {
 	private TextureData texture;
 	private Player player = new Player(0, 0, 0);
 	
-	private Cube[] cubes = new Cube[9];
+	private ArrayList<Cube> cubes = new ArrayList<Cube>();
 	
 	private int meshCount = 9;
+	private static final int RENDER_DIST = 50;
+
 	
 	private boolean[] keys = new boolean[255];
 	
@@ -68,12 +71,6 @@ public class HelloJOGL implements GLEventListener {
 		
 		anim = new Animator(window);
 		anim.start();
-		
-		for(int x = 0; x < 3; x++) {
-			for(int y = 0; y < 3; y++) {
-				cubes[x * 3 + y] = new Cube(x, y, 0);
-			}
-		}
 		
 	}
 
@@ -117,10 +114,7 @@ public class HelloJOGL implements GLEventListener {
 	    gl.glBindVertexArray(VAO.get(0)); // Bind VAO
 	    gl.glBindBuffer(GL4.GL_ARRAY_BUFFER, VBO.get(0)); // Bind VBO
 	    
-	    
-	    int bufferSize = 9 * 36 * 3 * GLBuffers.SIZEOF_FLOAT;
-	    gl.glBufferData(GL4.GL_ARRAY_BUFFER, bufferSize, null, GL4.GL_DYNAMIC_DRAW);
-	    //System.out.println(bufferSize);
+	    gl.glBufferData(GL4.GL_ARRAY_BUFFER, 20000000, null, GL4.GL_DYNAMIC_DRAW);
 	    
 	    // Define vertex attribute pointers (assuming cubes[i].getMeshData() returns the correct data)
 	    gl.glVertexAttribPointer(0, 3, GL4.GL_FLOAT, false, 5 * GLBuffers.SIZEOF_FLOAT, 0); // Position
@@ -129,28 +123,39 @@ public class HelloJOGL implements GLEventListener {
 	    gl.glEnableVertexAttribArray(1);
 	    
 	    // Map the buffer for writing
-	    ByteBuffer verticesByteBuffer = gl.glMapBufferRange(
-	    	    GL4.GL_ARRAY_BUFFER, 
-	    	    0, 
-	    	    bufferSize, 
-	    	    GL4.GL_MAP_WRITE_BIT | GL4.GL_MAP_INVALIDATE_BUFFER_BIT
-	    	);
+	    /*ByteBuffer verticesByteBuffer = gl.glMapBuffer(GL4.GL_ARRAY_BUFFER, GL4.GL_WRITE_ONLY);
 	    if (verticesByteBuffer == null) {
 	        throw new RuntimeException("Failed to map the buffer");
 	    }
 	    
 	    // Cast to FloatBuffer and write data
 	    FloatBuffer verticesBuffer = verticesByteBuffer.asFloatBuffer();
-	   // for (int i = 0; i < meshCount; i++) {
+	    for (int i = 0; i < meshCount; i++) {
 	        // Fill the buffer with mesh data for each cube
-	        verticesBuffer.put(cubes[0].getMeshData());
-	    //}
+	        verticesBuffer.put(cubes[i].getMeshData());
+	    }
 	    verticesBuffer.flip(); // Flip the buffer after writing
 
 	    // Unmap the buffer when done
-	    gl.glUnmapBuffer(GL4.GL_ARRAY_BUFFER);
+	    gl.glUnmapBuffer(GL4.GL_ARRAY_BUFFER);*/
+	  	//System.out.println(cubes[0].getMeshData().length * GLBuffers.SIZEOF_FLOAT);
+	  	
+	  	for(int x = (int) (player.getPosition().x() - RENDER_DIST); x < player.getPosition().x() + RENDER_DIST; x++) {
+	  		for(int z = (int) (player.getPosition().z() - RENDER_DIST); z < player.getPosition().z() + RENDER_DIST; z++) {
+	  			cubes.add(new Cube(x, 0, z));
+	  		}
+	  	}
+	  	
+	  	float[] vertices = new float[cubes.size() * 36 * 5];
+	  	int index = 0;
+	  	for(Cube c : cubes) {
+	  		for(float f : c.getMeshData()) {
+	  			vertices[index++] = f;
+	  		}
+	  	}
+	    
+	    gl.glBufferSubData(GL4.GL_ARRAY_BUFFER, 0, vertices.length * GLBuffers.SIZEOF_FLOAT, FloatBuffer.wrap(vertices));
 		
-	    //gl.glBufferSubData(GL4.GL_ARRAY_BUFFER, 0, bufferSize, FloatBuffer.wrap(cubes[0].getMeshData()));
 		try {
 			texture = TextureIO.newTextureData(gl.getGLProfile(), new File("res/container2.png"), GL4.GL_TEXTURE_2D, GL4.GL_RGBA, false, "png");
 		} catch(IOException e) {
@@ -166,8 +171,6 @@ public class HelloJOGL implements GLEventListener {
 		gl.glTexParameteri(GL4.GL_TEXTURE_2D, GL4.GL_TEXTURE_MAG_FILTER, GL4.GL_LINEAR);
 		gl.glTexImage2D(GL4.GL_TEXTURE_2D, 0, GL4.GL_RGBA, texture.getWidth(), texture.getHeight(), 0, GL4.GL_RGBA, GL4.GL_UNSIGNED_BYTE, texture.getBuffer());
 		gl.glGenerateMipmap(GL4.GL_TEXTURE_2D);
-		
-		
 	}
 	
 	@Override
@@ -208,21 +211,25 @@ public class HelloJOGL implements GLEventListener {
 		
 		draw(gl, VBO.get(0), VAO.get(0));
 		
-		int error = gl.glGetError();
-		if (error != GL4.GL_NO_ERROR) {
-		    System.err.println("OpenGL Error: " + error);
+		ArrayList<Cube> cubesToRemove = new ArrayList<Cube>();
+		for(Cube c : cubes) {
+			if(c.getX() < player.getPosition().x() - RENDER_DIST || c.getX() > player.getPosition().x() || c.getZ() < player.getPosition().z() - RENDER_DIST || c.getZ() > player.getPosition().z() + RENDER_DIST) {
+				cubesToRemove.add(c);
+				
+			}
 		}
+		
+		
+
 		//gl.glDrawElements(GL4.GL_TRIANGLES, VAO.limit(), GL4.GL_FLOAT, 0);
 
 	}
 	
 	private void draw(GL4 gl, int vb, int ib) {
-	    int[] boundVBO = new int[1];
-	    
-		gl.glBindBuffer(GL4.GL_ARRAY_BUFFER, vb);
+		//gl.glBindBuffer(GL4.GL_ARRAY_BUFFER, vb);
 		gl.glBindVertexArray(ib);
-		gl.glDrawArrays(GL4.GL_TRIANGLES, 0, 36);
-		gl.glBindVertexArray(0);
+		gl.glDrawArrays(GL4.GL_TRIANGLES, 0, 20000000);
+
 	}
 
 	@Override
